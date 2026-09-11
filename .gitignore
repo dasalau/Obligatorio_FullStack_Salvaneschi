@@ -1,0 +1,10 @@
+# Node / dependencies
+SERVIDOR/node_modules/
+SERVIDOR/.env
+SERVIDOR/.env.*
+
+# Logs
+npm-debug.log*
+
+# OS
+.DS_Store
