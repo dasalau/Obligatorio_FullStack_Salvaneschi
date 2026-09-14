@@ -1,59 +1,82 @@
-import { store } from "../data/store.js";
+import {
+  obtenerEspecialidadesService,
+  crearEspecialidadService,
+  obtenerEspecialidadPorNombreService,
+  eliminarEspecialidadService,
+} from "../services/especialidades.services.js";
+import Turno from "../models/turno.model.js";
 
-export const getEspecialidades = (req, res) => {
-  return res.status(200).json({ especialidades: store.especialidades });
-};
-
-export const createEspecialidad = (req, res) => {
-  const value = req.validatedBody;
-
-  const existe = store.especialidades.some(
-    (item) => item.nombre.toLowerCase() === value.nombre.toLowerCase(),
-  );
-  if (existe) {
+export const getEspecialidades = async (req, res) => {
+  try {
+    const especialidades = await obtenerEspecialidadesService();
+    return res.status(200).json({ especialidades });
+  } catch (error) {
     return res
-      .status(409)
-      .json({ message: "Ya existe una especialidad con ese nombre" });
+      .status(500)
+      .json({
+        message: "Error al obtener especialidades",
+        error: error.message,
+      });
   }
-
-  const nuevaEspecialidad = {
-    id: `e-${Date.now()}`,
-    ...value,
-    createdAt: new Date().toISOString(),
-  };
-
-  store.especialidades.push(nuevaEspecialidad);
-
-  return res
-    .status(201)
-    .json({ message: "Especialidad creada", especialidad: nuevaEspecialidad });
 };
 
-export const deleteEspecialidad = (req, res) => {
-  const especialidad = store.especialidades.find(
-    (item) => item.id === req.validatedParams.id,
-  );
+export const createEspecialidad = async (req, res) => {
+  try {
+    const value = req.validatedBody;
 
-  if (!especialidad) {
-    return res.status(404).json({ message: "Especialidad no encontrada" });
-  }
+    const existe = await obtenerEspecialidadPorNombreService(value.nombre);
+    if (existe) {
+      return res
+        .status(409)
+        .json({ message: "Ya existe una especialidad con ese nombre" });
+    }
 
-  const tieneTurnos = store.turnos.some(
-    (turno) => turno.especialidadId === req.validatedParams.id,
-  );
-  if (tieneTurnos) {
-    return res.status(409).json({
-      message:
-        "No se puede eliminar una especialidad que tiene turnos asociados",
+    const especialidad = await crearEspecialidadService(value);
+    return res.status(201).json({
+      message: "Especialidad creada",
+      especialidad,
     });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "Error al crear especialidad", error: error.message });
   }
+};
 
-  const index = store.especialidades.findIndex(
-    (item) => item.id === req.validatedParams.id,
-  );
-  const [eliminada] = store.especialidades.splice(index, 1);
+export const deleteEspecialidad = async (req, res) => {
+  try {
+    const { id } = req.validatedParams;
 
-  return res
-    .status(200)
-    .json({ message: "Especialidad eliminada", especialidad: eliminada });
+    const especialidad = await obtenerEspecialidadPorIdService(id);
+    if (!especialidad) {
+      return res.status(404).json({ message: "Especialidad no encontrada" });
+    }
+
+    const tieneTurnos = await Turno.exists({ especialidadId: id });
+    if (tieneTurnos) {
+      return res.status(409).json({
+        message:
+          "No se puede eliminar una especialidad que tiene turnos asociados",
+      });
+    }
+
+    const eliminada = await eliminarEspecialidadService(id);
+    return res.status(200).json({
+      message: "Especialidad eliminada",
+      especialidad: eliminada,
+    });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({
+        message: "Error al eliminar especialidad",
+        error: error.message,
+      });
+  }
+};
+
+const obtenerEspecialidadPorIdService = async (id) => {
+  return await (
+    await import("../models/especialidad.model.js")
+  ).default.findById(id);
 };
