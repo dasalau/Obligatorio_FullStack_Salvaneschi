@@ -1,9 +1,6 @@
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
 
-dotenv.config();
-
-const SECRET_KEY = process.env.SECRET_KEY;
+const getSecretKey = () => process.env.SECRET_KEY;
 
 export const authenticateMiddleware = (req, res, next) => {
   //En el header de las requests se espera que el token esté en el formato "Bearer <token>"
@@ -19,7 +16,7 @@ export const authenticateMiddleware = (req, res, next) => {
     return res.status(401).json({ message: "Token inválido" });
   }
 
-  jwt.verify(token, SECRET_KEY, (err, decoded) => {
+  jwt.verify(token, getSecretKey(), (err, decoded) => {
     if (err) {
       return res.status(401).json({ message: "Token inválido" });
     }

@@ -1,5 +1,4 @@
 import { store } from "../data/store.js";
-import { turnoSchema } from "../validators/turnos.validators.js";
 
 const getUserPlan = (userId) => {
   const user = store.users.find((item) => item.id === userId);
@@ -35,11 +34,7 @@ export const getTurnos = (req, res) => {
 };
 
 export const createTurno = (req, res) => {
-  const { error, value } = turnoSchema.validate(req.body);
-
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
+  const value = req.validatedBody;
 
   const paciente = store.pacientes.find((item) => item.id === value.pacienteId);
   if (!paciente) {
@@ -81,7 +76,7 @@ export const createTurno = (req, res) => {
 };
 
 export const getTurnoById = (req, res) => {
-  const turno = store.turnos.find((item) => item.id === req.params.id);
+  const turno = store.turnos.find((item) => item.id === req.validatedParams.id);
 
   if (!turno) {
     return res.status(404).json({ message: "Turno no encontrado" });
@@ -91,16 +86,13 @@ export const getTurnoById = (req, res) => {
 };
 
 export const updateTurno = (req, res) => {
-  const turno = store.turnos.find((item) => item.id === req.params.id);
+  const turno = store.turnos.find((item) => item.id === req.validatedParams.id);
 
   if (!turno) {
     return res.status(404).json({ message: "Turno no encontrado" });
   }
 
-  const { error, value } = turnoSchema.validate(req.body);
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
+  const value = req.validatedBody;
 
   Object.assign(turno, value);
   turno.pacienteNombre =
@@ -113,7 +105,9 @@ export const updateTurno = (req, res) => {
 };
 
 export const deleteTurno = (req, res) => {
-  const index = store.turnos.findIndex((turno) => turno.id === req.params.id);
+  const index = store.turnos.findIndex(
+    (turno) => turno.id === req.validatedParams.id,
+  );
 
   if (index === -1) {
     return res.status(404).json({ message: "Turno no encontrado" });

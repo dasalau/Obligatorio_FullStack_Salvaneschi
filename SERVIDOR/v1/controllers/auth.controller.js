@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { store, sanitizeUser } from "../data/store.js";
 
-const SECRET_KEY = process.env.SECRET_KEY || "mi_clave_secreta";
+const getSecretKey = () => process.env.SECRET_KEY;
 
 export const ingresarUsuario = (req, res) => {
   const { username, password } = req.body;
@@ -27,7 +27,7 @@ export const ingresarUsuario = (req, res) => {
       username: usuarioExistente.username,
       role: usuarioExistente.role,
     },
-    SECRET_KEY,
+    getSecretKey(),
     { expiresIn: "1h" },
   );
 
@@ -67,7 +67,7 @@ export const registrarUsuario = (req, res) => {
       username: nuevoUsuario.username,
       role: nuevoUsuario.role,
     },
-    SECRET_KEY,
+    getSecretKey(),
     { expiresIn: "1h" },
   );
 

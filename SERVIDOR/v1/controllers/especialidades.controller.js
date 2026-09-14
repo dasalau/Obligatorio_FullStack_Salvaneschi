@@ -1,16 +1,11 @@
 import { store } from "../data/store.js";
-import { especialidadSchema } from "../validators/especialidades.validators.js";
 
 export const getEspecialidades = (req, res) => {
   return res.status(200).json({ especialidades: store.especialidades });
 };
 
 export const createEspecialidad = (req, res) => {
-  const { error, value } = especialidadSchema.validate(req.body);
-
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
+  const value = req.validatedBody;
 
   const existe = store.especialidades.some(
     (item) => item.nombre.toLowerCase() === value.nombre.toLowerCase(),
@@ -36,7 +31,7 @@ export const createEspecialidad = (req, res) => {
 
 export const deleteEspecialidad = (req, res) => {
   const especialidad = store.especialidades.find(
-    (item) => item.id === req.params.id,
+    (item) => item.id === req.validatedParams.id,
   );
 
   if (!especialidad) {
@@ -44,19 +39,17 @@ export const deleteEspecialidad = (req, res) => {
   }
 
   const tieneTurnos = store.turnos.some(
-    (turno) => turno.especialidadId === req.params.id,
+    (turno) => turno.especialidadId === req.validatedParams.id,
   );
   if (tieneTurnos) {
-    return res
-      .status(409)
-      .json({
-        message:
-          "No se puede eliminar una especialidad que tiene turnos asociados",
-      });
+    return res.status(409).json({
+      message:
+        "No se puede eliminar una especialidad que tiene turnos asociados",
+    });
   }
 
   const index = store.especialidades.findIndex(
-    (item) => item.id === req.params.id,
+    (item) => item.id === req.validatedParams.id,
   );
   const [eliminada] = store.especialidades.splice(index, 1);
 
