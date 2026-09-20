@@ -1,36 +1,45 @@
 import Usuario from "../models/usuario.model.js";
+import { sanitizeUser } from "../utils/user.utils.js";
 
-export const obtenerUsuarioPorIdService = async (id) => {
-  return await Usuario.findOne({ id });
+export const getMiPerfilService = async (userId) => {
+  const user = await Usuario.findById(userId);
+
+  if (!user) {
+    const error = new Error("Usuario no encontrado");
+    error.status = 404;
+    throw error;
+  }
+
+  return sanitizeUser(user);
 };
 
-export const obtenerUsuarioPorUsernameService = async (username) => {
-  return await Usuario.findOne({
-    username: { $regex: `^${username}$`, $options: "i" },
-  });
-};
+export const cambiarPlanService = async (userId, value) => {
+  const user = await Usuario.findById(userId);
 
-export const crearUsuarioService = async ({
-  username,
-  password,
-  plan,
-  role,
-}) => {
-  const nuevoUsuario = new Usuario({
-    id: `u-${Date.now()}`,
-    username,
-    password,
-    plan,
-    role,
-  });
+  if (!user) {
+    const error = new Error("Usuario no encontrado");
+    error.status = 404;
+    throw error;
+  }
 
-  return await nuevoUsuario.save();
-};
+  if (user.plan !== "plus" && value.plan === "premium") {
+    const error = new Error("Solo puedes cambiar a premium desde el plan plus");
+    error.status = 400;
+    throw error;
+  }
 
-export const actualizarPlanUsuarioService = async (id, nuevoPlan) => {
-  return await Usuario.findOneAndUpdate(
-    { id },
-    { plan: nuevoPlan },
-    { new: true, runValidators: true },
-  );
+  if (user.plan === "premium" && value.plan === "premium") {
+    return {
+      message: "Ya tienes el plan premium activo",
+      user: sanitizeUser(user),
+    };
+  }
+
+  user.plan = value.plan;
+  await user.save();
+
+  return {
+    message: "Plan actualizado correctamente",
+    user: sanitizeUser(user),
+  };
 };
