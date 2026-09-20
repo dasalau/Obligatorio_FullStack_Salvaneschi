@@ -4,8 +4,16 @@ const UsuarioSchema = new mongoose.Schema(
   {
     username: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    plan: { type: String, enum: ["plus", "premium"], default: "plus" },
-    role: { type: String, enum: ["user", "admin"], default: "user" },
+    plan: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Plan",
+      required: true,
+    },
+    role: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Rol",
+      required: true,
+    },
     createdAt: { type: Date, default: Date.now },
   },
   { collection: "usuarios" },

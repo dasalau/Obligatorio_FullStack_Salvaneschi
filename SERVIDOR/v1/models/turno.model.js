@@ -17,12 +17,14 @@ const turnoSchema = new mongoose.Schema(
     motivo: { type: String, default: "" },
     estado: { type: String, default: "pendiente" },
     imagen: { type: String, default: "" },
-    createdBy: { type: String },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Usuario",
+      required: true,
+    },
   },
   { timestamps: true },
 );
-
-// Note: legacy `pacienteId`/`especialidadId` fields are removed from the schema.
 
 const Turno = mongoose.model("Turno", turnoSchema, "turnos");
 

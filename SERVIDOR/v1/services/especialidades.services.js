@@ -2,11 +2,7 @@ import Especialidad from "../models/especialidad.model.js";
 import Turno from "../models/turno.model.js";
 
 export const obtenerEspecialidadesService = async () => {
-  let existentes = await Especialidad.find().sort({ createdAt: -1 });
-
-  // Devolver especialidades en DB
-
-  return existentes;
+  return await Especialidad.find().sort({ createdAt: -1 });
 };
 
 export const crearEspecialidadService = async (value) => {

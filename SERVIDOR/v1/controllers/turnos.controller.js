@@ -34,9 +34,8 @@ export const getTurnos = async (req, res, next) => {
 export const createTurno = async (req, res, next) => {
   try {
     const value = req.validatedBody;
-    const userPlan = req.decoded.plan || "plus";
 
-    const creado = await createTurnoService(value, req.decoded.id, userPlan);
+    const creado = await createTurnoService(value, req.decoded.id);
     return res.status(201).json({
       message: "Turno creado correctamente",
       turno: creado,
