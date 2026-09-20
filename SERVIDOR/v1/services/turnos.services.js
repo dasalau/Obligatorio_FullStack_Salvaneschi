@@ -1,6 +1,7 @@
 import Turno from "../models/turno.model.js";
 import Paciente from "../models/paciente.model.js";
 import Especialidad from "../models/especialidad.model.js";
+import Usuario from "../models/usuario.model.js";
 
 export const getTurnosService = async ({
   page = 1,
@@ -24,15 +25,31 @@ export const getTurnosService = async ({
     .limit(lim)
     .sort({ createdAt: -1 })
     .populate("paciente", "nombre apellido cedula telefono email")
-    .populate("especialidad", "nombre descripcion");
+    .populate("especialidad", "nombre descripcion")
+    .populate("createdBy", "username");
 
   return { turnos, total, page: pageNum, limit: lim, totalPages };
 };
 
-export const createTurnoService = async (value, userId, userPlan = "plus") => {
+export const createTurnoService = async (value, userId) => {
+  const usuario = await Usuario.findById(userId).populate("plan");
+
+  if (!usuario) {
+    const error = new Error("Usuario no encontrado");
+    error.status = 404;
+    throw error;
+  }
+
+  const planCode = usuario.plan?.codigo || "plus";
   const turnosActivos = await countActiveTurnosByUser(userId);
-  if (userPlan === "plus" && turnosActivos >= 4) {
-    const error = new Error("El plan plus solo permite 4 turnos activos");
+  const maxTurnosActivos = planCode === "premium" ? Number.MAX_SAFE_INTEGER : 4;
+
+  if (turnosActivos >= maxTurnosActivos) {
+    const error = new Error(
+      planCode === "premium"
+        ? "El plan premium no tiene límite de turnos activos"
+        : "El plan plus solo permite 4 turnos activos",
+    );
     error.status = 403;
     throw error;
   }
@@ -65,7 +82,8 @@ export const createTurnoService = async (value, userId, userPlan = "plus") => {
   const creado = await Turno.create(nuevo);
   const populated = await Turno.findById(creado._id)
     .populate("paciente", "nombre apellido cedula telefono email")
-    .populate("especialidad", "nombre descripcion");
+    .populate("especialidad", "nombre descripcion")
+    .populate("createdBy", "username");
   return populated;
 };
 
@@ -79,7 +97,8 @@ export const countActiveTurnosByUser = async (userId) => {
 export const getTurnoByIdService = async (id) => {
   const turno = await Turno.findById(id)
     .populate("paciente", "nombre apellido cedula telefono email")
-    .populate("especialidad", "nombre descripcion");
+    .populate("especialidad", "nombre descripcion")
+    .populate("createdBy", "username");
   return turno;
 };
 
@@ -89,14 +108,16 @@ export const updateTurnoService = async (id, data) => {
     runValidators: true,
   })
     .populate("paciente", "nombre apellido cedula telefono email")
-    .populate("especialidad", "nombre descripcion");
+    .populate("especialidad", "nombre descripcion")
+    .populate("createdBy", "username");
   return updated;
 };
 
 export const deleteTurnoService = async (id) => {
   const deleted = await Turno.findById(id)
     .populate("paciente", "nombre apellido cedula telefono email")
-    .populate("especialidad", "nombre descripcion");
+    .populate("especialidad", "nombre descripcion")
+    .populate("createdBy", "username");
   if (!deleted) return null;
   await Turno.findByIdAndDelete(id);
   return deleted;

@@ -6,6 +6,7 @@ import {
   getEspecialidades,
   createEspecialidad,
   deleteEspecialidad,
+  updateEspecialidad,
 } from "../controllers/especialidades.controller.js";
 import {
   especialidadSchema,
@@ -20,6 +21,12 @@ router.post(
   "/",
   validateBodyMiddleware(especialidadSchema),
   createEspecialidad,
+);
+router.patch(
+  "/:id",
+  validateParamsMiddleware(especialidadIdSchema),
+  validateBodyMiddleware(especialidadSchema),
+  updateEspecialidad,
 );
 router.delete(
   "/:id",

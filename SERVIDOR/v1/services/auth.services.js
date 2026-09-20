@@ -1,9 +1,23 @@
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import Usuario from "../models/usuario.model.js";
+import Rol from "../models/rol.model.js";
+import Plan from "../models/plan.model.js";
 import { sanitizeUser } from "../utils/user.utils.js";
 
 const getSecretKey = () => process.env.SECRET_KEY;
+
+const getUserRoleAndPlan = async (usuario) => {
+  const [roleDoc, planDoc] = await Promise.all([
+    usuario.role ? Rol.findById(usuario.role) : null,
+    usuario.plan ? Plan.findById(usuario.plan) : null,
+  ]);
+
+  return {
+    roleCode: roleDoc ? roleDoc.codigo : "user",
+    planCode: planDoc ? planDoc.codigo : "plus",
+  };
+};
 
 export const loginUsuarioService = async ({ username, password }) => {
   const usuarioExistente = await Usuario.findOne({
@@ -23,12 +37,14 @@ export const loginUsuarioService = async ({ username, password }) => {
     throw error;
   }
 
+  const { roleCode, planCode } = await getUserRoleAndPlan(usuarioExistente);
+
   const token = jwt.sign(
     {
       id: usuarioExistente._id.toString(),
       username: usuarioExistente.username,
-      role: usuarioExistente.role,
-      plan: usuarioExistente.plan,
+      role: roleCode,
+      plan: planCode,
     },
     getSecretKey(),
     { expiresIn: "1h" },
@@ -52,16 +68,32 @@ export const registrarUsuarioService = async ({ username, password }) => {
     throw error;
   }
 
+  const [roleDoc, planDoc] = await Promise.all([
+    Rol.findOne({ codigo: "user" }),
+    Plan.findOne({ codigo: "plus" }),
+  ]);
+
+  if (!roleDoc || !planDoc) {
+    const error = new Error("Faltan los datos base de roles y planes");
+    error.status = 500;
+    throw error;
+  }
+
   const hashedPassword = bcrypt.hashSync(password, 12);
-  const nuevo = new Usuario({ username, password: hashedPassword });
+  const nuevo = new Usuario({
+    username,
+    password: hashedPassword,
+    role: roleDoc._id,
+    plan: planDoc._id,
+  });
   const saved = await nuevo.save();
 
   const token = jwt.sign(
     {
       id: saved._id.toString(),
       username: saved.username,
-      role: saved.role,
-      plan: saved.plan,
+      role: "user",
+      plan: "plus",
     },
     getSecretKey(),
     { expiresIn: "1h" },
