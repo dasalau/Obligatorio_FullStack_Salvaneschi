@@ -3,7 +3,7 @@ import Joi from "joi";
 export const pacienteSchema = Joi.object({
   nombre: Joi.string().trim().min(2).required(),
   apellido: Joi.string().trim().min(2).required(),
-  dni: Joi.string()
+  cedula: Joi.string()
     .pattern(/^[0-9]+$/)
     .required(),
   telefono: Joi.string().required(),

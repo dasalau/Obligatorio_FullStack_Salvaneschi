@@ -2,7 +2,8 @@ import { crearProductoService,
     obtenerProductoPorIdService,
     obtenerProductosService,
     actualizarProductoService,
-    eliminarProductoService } from "../services/productos.services.js";
+    eliminarProductoService, 
+    obtenerProductosXRangoPrecioService } from "../services/productos.services.js";
 
 export const obtenerProductos = async (req, res) => {
     const productos = await obtenerProductosService();
@@ -30,4 +31,10 @@ export const eliminarProducto = async (req, res) => {
     const { id } = req.params;
     const producto = await eliminarProductoService(id);
     res.json(producto);
+}
+
+export const obtenerProductosXRangoPrecio = async (req, res) => {
+    const { min, max } = req.query;
+    const productos = await obtenerProductosXRangoPrecioService(min, max);
+    res.json(productos);
 }

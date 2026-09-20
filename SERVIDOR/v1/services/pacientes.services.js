@@ -13,6 +13,10 @@ export const obtenerPacientePorIdService = async (id) => {
   return await Paciente.findById(id);
 };
 
+export const obtenerPacientePorCedulaService = async (cedula) => {
+  return await Paciente.findOne({ cedula });
+};
+
 export const actualizarPacienteService = async (id, pacienteData) => {
   return await Paciente.findByIdAndUpdate(id, pacienteData, {
     new: true,

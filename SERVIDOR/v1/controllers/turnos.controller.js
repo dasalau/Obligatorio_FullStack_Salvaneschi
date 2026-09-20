@@ -1,140 +1,97 @@
 import {
-  obtenerTurnosService,
-  crearTurnoService,
-  obtenerTurnoPorIdService,
-  actualizarTurnoService,
-  eliminarTurnoService,
-  contarTurnosPorUsuarioService,
+  getTurnosService,
+  createTurnoService,
+  countActiveTurnosByUser,
+  getTurnoByIdService,
+  updateTurnoService,
+  deleteTurnoService,
 } from "../services/turnos.services.js";
-import Paciente from "../models/paciente.model.js";
-import Especialidad from "../models/especialidad.model.js";
-import Usuario from "../models/usuario.model.js";
 
-const getUserPlan = async (userId) => {
-  const user = await Usuario.findOne({ id: userId });
-  return user ? user.plan : "plus";
-};
-
-export const getTurnos = async (req, res) => {
+export const getTurnos = async (req, res, next) => {
   try {
-    const { pagina = 1, limite = 10, estado, especialidadId } = req.query;
-    const resultado = await obtenerTurnosService({
+    const { pagina = 1, limite = 10, estado, especialidad } = req.query;
+    const result = await getTurnosService({
+      page: pagina,
+      limit: limite,
       estado,
-      especialidadId,
-      pagina,
-      limite,
+      especialidad,
     });
-    return res.status(200).json(resultado);
+
+    const populated = result.turnos;
+
+    return res.status(200).json({
+      total: result.total,
+      pagina: result.page,
+      limite: result.limit,
+      totalPages: result.totalPages,
+      turnos: populated,
+    });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Error al obtener turnos", error: error.message });
+    next(error);
   }
 };
 
-export const createTurno = async (req, res) => {
+export const createTurno = async (req, res, next) => {
   try {
     const value = req.validatedBody;
+    const userPlan = req.decoded.plan || "plus";
 
-    const paciente = await Paciente.findById(value.pacienteId);
-    if (!paciente) {
-      return res.status(404).json({ message: "Paciente no encontrado" });
-    }
-
-    const especialidad = await Especialidad.findById(value.especialidadId);
-    if (!especialidad) {
-      return res.status(404).json({ message: "Especialidad no encontrada" });
-    }
-
-    const userPlan = await getUserPlan(req.decoded.id);
-    const turnosActivos = await contarTurnosPorUsuarioService(req.decoded.id);
-
-    if (userPlan === "plus" && turnosActivos >= 4) {
-      return res
-        .status(403)
-        .json({ message: "El plan plus solo permite 4 turnos activos" });
-    }
-
-    const nuevoTurno = await crearTurnoService({
-      ...value,
-      pacienteNombre: `${paciente.nombre} ${paciente.apellido}`,
-      especialidadNombre: especialidad.nombre,
-      createdBy: req.decoded.id,
+    const creado = await createTurnoService(value, req.decoded.id, userPlan);
+    return res.status(201).json({
+      message: "Turno creado correctamente",
+      turno: creado,
     });
-
-    return res
-      .status(201)
-      .json({ message: "Turno creado correctamente", turno: nuevoTurno });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Error al crear turno", error: error.message });
+    next(error);
   }
 };
 
-export const getTurnoById = async (req, res) => {
+export const getTurnoById = async (req, res, next) => {
   try {
-    const { id } = req.validatedParams;
-    const turno = await obtenerTurnoPorIdService(id);
-
+    const turno = await getTurnoByIdService(req.validatedParams.id);
     if (!turno) {
-      return res.status(404).json({ message: "Turno no encontrado" });
+      const error = new Error("Turno no encontrado");
+      error.status = 404;
+      throw error;
     }
 
     return res.status(200).json({ turno });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Error al obtener turno", error: error.message });
+    next(error);
   }
 };
 
-export const updateTurno = async (req, res) => {
+export const updateTurno = async (req, res, next) => {
   try {
-    const { id } = req.validatedParams;
-    const value = req.validatedBody;
-
-    const turnoActual = await obtenerTurnoPorIdService(id);
-    if (!turnoActual) {
-      return res.status(404).json({ message: "Turno no encontrado" });
+    const updated = await updateTurnoService(
+      req.validatedParams.id,
+      req.validatedBody,
+    );
+    if (!updated) {
+      const error = new Error("Turno no encontrado");
+      error.status = 404;
+      throw error;
     }
 
-    if (value.pacienteId) {
-      const paciente = await Paciente.findById(value.pacienteId);
-      if (paciente) {
-        value.pacienteNombre = `${paciente.nombre} ${paciente.apellido}`;
-      }
-    }
-
-    if (value.especialidadId) {
-      const especialidad = await Especialidad.findById(value.especialidadId);
-      if (especialidad) {
-        value.especialidadNombre = especialidad.nombre;
-      }
-    }
-
-    const turno = await actualizarTurnoService(id, value);
-    return res.status(200).json({ message: "Turno actualizado", turno });
-  } catch (error) {
     return res
-      .status(500)
-      .json({ message: "Error al actualizar turno", error: error.message });
+      .status(200)
+      .json({ message: "Turno actualizado", turno: updated });
+  } catch (error) {
+    next(error);
   }
 };
 
-export const deleteTurno = async (req, res) => {
+export const deleteTurno = async (req, res, next) => {
   try {
-    const { id } = req.validatedParams;
-    const turno = await eliminarTurnoService(id);
-
-    if (!turno) {
-      return res.status(404).json({ message: "Turno no encontrado" });
+    const deleted = await deleteTurnoService(req.validatedParams.id);
+    if (!deleted) {
+      const error = new Error("Turno no encontrado");
+      error.status = 404;
+      throw error;
     }
 
-    return res.status(200).json({ message: "Turno eliminado", turno });
+    return res.status(200).json({ message: "Turno eliminado", turno: deleted });
   } catch (error) {
-    return res
-      .status(500)
-      .json({ message: "Error al eliminar turno", error: error.message });
+    next(error);
   }
 };
