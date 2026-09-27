@@ -2,6 +2,7 @@ import Turno from "../models/turno.model.js";
 import Paciente from "../models/paciente.model.js";
 import Especialidad from "../models/especialidad.model.js";
 import Usuario from "../models/usuario.model.js";
+import { sendTurnoConfirmationEmail } from "./email.service.js";
 
 export const getTurnosService = async ({
   page = 1,
@@ -84,6 +85,22 @@ export const createTurnoService = async (value, userId) => {
     .populate("paciente", "nombre apellido cedula telefono email")
     .populate("especialidad", "nombre descripcion")
     .populate("createdBy", "username");
+
+  try {
+    if (paciente.email) {
+      await sendTurnoConfirmationEmail({
+        to: paciente.email,
+        pacienteNombre: `${paciente.nombre} ${paciente.apellido}`.trim(),
+        especialidadNombre: especialidad.nombre,
+        fecha: nuevo.fecha,
+        hora: nuevo.hora,
+        motivo: nuevo.motivo,
+      });
+    }
+  } catch (error) {
+    console.warn("No se pudo enviar email de confirmación:", error.message);
+  }
+
   return populated;
 };
 

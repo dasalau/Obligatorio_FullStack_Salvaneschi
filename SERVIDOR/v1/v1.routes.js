@@ -4,7 +4,8 @@ import usuariosRouter from "./routes/usuarios.routes.js";
 import pacientesRouter from "./routes/pacientes.routes.js";
 import especialidadesRouter from "./routes/especialidades.routes.js";
 import turnosRouter from "./routes/turnos.routes.js";
-import iaRouter from "./routes/ia.routes.js";
+import uploadsRouter from "./routes/uploads.routes.js";
+import groqRouter from "./routes/groq.routes.js";
 import { authenticateMiddleware } from "./middlewares/authenticate.middleware.js";
 
 const router = express.Router({ mergeParams: true });
@@ -20,6 +21,8 @@ router.use("/usuarios", usuariosRouter);
 router.use("/pacientes", pacientesRouter);
 router.use("/especialidades", especialidadesRouter);
 router.use("/turnos", turnosRouter);
-router.use("/ia", iaRouter);
+router.use("/uploads", uploadsRouter); 
+router.use("/groq", groqRouter);
+
 
 export default router;
