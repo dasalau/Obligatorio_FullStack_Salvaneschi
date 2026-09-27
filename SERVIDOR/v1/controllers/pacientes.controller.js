@@ -5,6 +5,7 @@ import {
   obtenerPacientePorCedulaService,
   actualizarPacienteService,
   eliminarPacienteService,
+  agregarImagenPacienteService,
 } from "../services/pacientes.services.js";
 
 export const getPacientes = async (req, res, next) => {
@@ -67,4 +68,22 @@ export const getPacienteById = async (req, res, next) => {
   }
 
   return res.status(200).json({ paciente });
+};
+
+export const addPacienteImagen = async (req, res, next) => {
+  const { id } = req.validatedParams;
+  const { url } = req.validatedBody;
+
+  const paciente = await agregarImagenPacienteService(id, url);
+
+  if (!paciente) {
+    const error = new Error("Paciente no encontrado");
+    error.status = 404;
+    return next(error);
+  }
+
+  return res.status(200).json({
+    message: "Imagen agregada al paciente",
+    paciente,
+  });
 };

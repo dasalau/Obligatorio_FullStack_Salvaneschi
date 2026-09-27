@@ -13,3 +13,7 @@ export const pacienteSchema = Joi.object({
 export const pacienteIdSchema = Joi.object({
   id: Joi.string().required(),
 });
+
+export const pacienteImagenSchema = Joi.object({
+  url: Joi.string().uri().required(),
+});

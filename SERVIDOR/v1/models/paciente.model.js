@@ -28,6 +28,10 @@ const pacienteSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
+    imagenes: {
+      type: [String],
+      default: [],
+    },
   },
   {
     timestamps: true,

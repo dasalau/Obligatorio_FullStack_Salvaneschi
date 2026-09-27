@@ -27,3 +27,14 @@ export const actualizarPacienteService = async (id, pacienteData) => {
 export const eliminarPacienteService = async (id) => {
   return await Paciente.findByIdAndDelete(id);
 };
+
+export const agregarImagenPacienteService = async (id, url) => {
+  return await Paciente.findByIdAndUpdate(
+    id,
+    { $addToSet: { imagenes: url } },
+    {
+      new: true,
+      runValidators: true,
+    },
+  );
+};
