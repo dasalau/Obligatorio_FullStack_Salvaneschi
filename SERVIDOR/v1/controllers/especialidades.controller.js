@@ -20,6 +20,13 @@ export const createEspecialidad = async (req, res, next) => {
 
 export const deleteEspecialidad = async (req, res, next) => {
   const deleted = await eliminarEspecialidadService(req.validatedParams.id);
+
+  if (!deleted) {
+    const error = new Error("Especialidad no encontrada");
+    error.status = 404;
+    throw error;
+  }
+
   return res
     .status(200)
     .json({ message: "Especialidad eliminada", especialidad: deleted });
@@ -30,6 +37,13 @@ export const updateEspecialidad = async (req, res, next) => {
     req.validatedParams.id,
     req.validatedBody,
   );
+
+  if (!updated) {
+    const error = new Error("Especialidad no encontrada");
+    error.status = 404;
+    throw error;
+  }
+
   return res
     .status(200)
     .json({ message: "Especialidad actualizada", especialidad: updated });

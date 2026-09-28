@@ -7,7 +7,7 @@ const planSchema = new mongoose.Schema(
     maxTurnosActivos: { type: Number, default: 4 },
     activo: { type: Boolean, default: true },
   },
-  { timestamps: true, collection: "planes" },
+  { collection: "planes" },
 );
 
 const Plan = mongoose.model("Plan", planSchema);

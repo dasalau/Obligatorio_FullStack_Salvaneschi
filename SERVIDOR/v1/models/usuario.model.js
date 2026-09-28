@@ -14,9 +14,7 @@ const UsuarioSchema = new mongoose.Schema(
       ref: "Rol",
       required: true,
     },
-    createdAt: { type: Date, default: Date.now },
   },
-  { collection: "usuarios" },
 );
 
 const Usuario = mongoose.model("Usuario", UsuarioSchema);
