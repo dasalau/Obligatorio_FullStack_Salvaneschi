@@ -6,7 +6,7 @@ const rolSchema = new mongoose.Schema(
     nombre: { type: String, required: true, trim: true },
     activo: { type: Boolean, default: true },
   },
-  { timestamps: true, collection: "roles" },
+  { collection: "roles" },
 );
 
 const Rol = mongoose.model("Rol", rolSchema);

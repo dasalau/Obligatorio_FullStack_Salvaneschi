@@ -22,7 +22,7 @@ export const crearEspecialidadService = async (value) => {
 
 export const eliminarEspecialidadService = async (id) => {
   // Verificar turnos asociados
-  const tieneTurnos = await Turno.exists({ especialidadId: id });
+  const tieneTurnos = await Turno.exists({ especialidad: id });
   if (tieneTurnos) {
     const error = new Error(
       "No se puede eliminar una especialidad que tiene turnos asociados",
