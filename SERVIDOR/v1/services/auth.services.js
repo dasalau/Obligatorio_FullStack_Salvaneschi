@@ -79,7 +79,7 @@ export const registrarUsuarioService = async ({ username, password }) => {
     throw error;
   }
 
-  const hashedPassword = bcrypt.hashSync(password, 12);
+  const hashedPassword = bcrypt.hashSync(password, Number(process.env.ROUND));
   const nuevo = new Usuario({
     username,
     password: hashedPassword,
