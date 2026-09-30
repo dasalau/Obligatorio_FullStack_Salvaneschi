@@ -26,7 +26,8 @@ export const pacienteSchema = Joi.object({
   email: Joi.string().email().optional().allow("").messages({
     "string.email": "El email debe tener un formato válido",
   }),
-});
+  folder: Joi.string().optional().allow(""),
+}).unknown(true);
 
 export const pacienteIdSchema = Joi.object({
   id: Joi.string().required().messages({
