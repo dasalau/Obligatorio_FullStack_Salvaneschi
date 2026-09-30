@@ -1,5 +1,6 @@
 import express from "express";
 import { authenticateMiddleware } from "../middlewares/authenticate.middleware.js";
+import { upload } from "../middlewares/multer.middleware.js";
 import { validateBodyMiddleware } from "../middlewares/validateBody.middleware.js";
 import { validateParamsMiddleware } from "../middlewares/validateParams.middleware.js";
 import {
@@ -21,7 +22,12 @@ const router = express.Router({ mergeParams: true });
 router.use(authenticateMiddleware);
 router.get("/", getPacientes);
 router.get("/:id", validateParamsMiddleware(pacienteIdSchema), getPacienteById);
-router.post("/", validateBodyMiddleware(pacienteSchema), createPaciente);
+router.post(
+  "/",
+  upload.single("imagen"),
+  validateBodyMiddleware(pacienteSchema),
+  createPaciente,
+);
 router.put(
   "/:id",
   validateParamsMiddleware(pacienteIdSchema),
@@ -31,7 +37,11 @@ router.put(
 router.patch(
   "/:id/imagenes",
   validateParamsMiddleware(pacienteIdSchema),
-  validateBodyMiddleware(pacienteImagenSchema),
+  upload.single("imagen"),
+  (req, res, next) => {
+    if (req.file) return next();
+    return validateBodyMiddleware(pacienteImagenSchema)(req, res, next);
+  },
   addPacienteImagen,
 );
 router.delete(

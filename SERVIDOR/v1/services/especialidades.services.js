@@ -27,7 +27,7 @@ export const eliminarEspecialidadService = async (id) => {
     const error = new Error(
       "No se puede eliminar una especialidad que tiene turnos asociados",
     );
-    error.status = 409;
+    error.status = 400;
     throw error;
   }
 

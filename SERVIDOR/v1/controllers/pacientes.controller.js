@@ -1,3 +1,4 @@
+import cloudinary from "../config/cloudinary.js";
 import {
   obtenerPacientesService,
   crearPacienteService,
@@ -7,6 +8,19 @@ import {
   eliminarPacienteService,
   agregarImagenPacienteService,
 } from "../services/pacientes.services.js";
+import { uploadBufferToCloudinary } from "../utils/cloudinary.util.js";
+
+const subirImagenYDevolverUrl = async (req) => {
+  if (!req.file) return null;
+
+  const folder = req.body?.folder || "pacientes";
+  const result = await uploadBufferToCloudinary(cloudinary, req.file.buffer, {
+    resource_type: "auto",
+    folder,
+  });
+
+  return result.secure_url;
+};
 
 export const getPacientes = async (req, res, next) => {
   const pacientes = await obtenerPacientesService();
@@ -22,7 +36,13 @@ export const createPaciente = async (req, res, next) => {
     return next(error);
   }
 
-  const paciente = await crearPacienteService(value);
+  const imagenUrl = await subirImagenYDevolverUrl(req);
+  const pacientePayload = {
+    ...value,
+    ...(imagenUrl ? { imagenes: [imagenUrl] } : {}),
+  };
+
+  const paciente = await crearPacienteService(pacientePayload);
   return res.status(201).json({
     message: "Paciente creado correctamente",
     paciente,
@@ -72,7 +92,13 @@ export const getPacienteById = async (req, res, next) => {
 
 export const addPacienteImagen = async (req, res, next) => {
   const { id } = req.validatedParams;
-  const { url } = req.validatedBody;
+  const url = req.file ? await subirImagenYDevolverUrl(req) : req.validatedBody.url;
+
+  if (!url) {
+    const error = new Error("Debe enviar una imagen o una URL válida");
+    error.status = 400;
+    return next(error);
+  }
 
   const paciente = await agregarImagenPacienteService(id, url);
 
