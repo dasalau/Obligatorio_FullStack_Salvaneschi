@@ -40,7 +40,9 @@ export const turnoSchema = Joi.object({
 });
 
 export const turnoIdSchema = Joi.object({
-  id: Joi.string().required().messages({
+  id: Joi.string().hex().length(24).required().messages({
+    "string.hex": "El id debe ser hexadecimal",
+    "string.length": "El id debe tener {#limit} caracteres",
     "string.empty": "El id no puede estar vacío",
     "any.required": "El id es obligatorio",
   }),
